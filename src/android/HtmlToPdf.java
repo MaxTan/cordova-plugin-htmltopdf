@@ -119,7 +119,7 @@ public class HtmlToPdf extends CordovaPlugin {
 
 final class InJavaScriptLocalObj {
 
-    private static final String fontPath = "/th/azay/cordova/plugin/html2pdf/simsun.ttf";
+    private static final String fontPath = "/xyz/xyzmax/cordov/simsun.ttf";
     private String CssStyle;
 
     public InJavaScriptLocalObj(String css) {
