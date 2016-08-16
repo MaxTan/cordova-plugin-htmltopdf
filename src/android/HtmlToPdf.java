@@ -1,4 +1,4 @@
-package xyz.xyzmax.cordova.HtmlToPdf;
+package xyz.xyzmax.cordova;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -39,9 +39,9 @@ public class HtmlToPdf extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         try {
             if (action.equals("create")) {
-                final String css = InputStreamToString(getClass().getResourceAsStream("/assets/www/css/pdf.css"));
+                final String css = inputStreamToString(getClass().getResourceAsStream("/assets/www/css/pdf.css"));
 
-                final Html2pdf self = this;
+                final HtmlToPdf self = this;
                 final String content = args.optString(0, "<html></html>");
                 cordova.getActivity().runOnUiThread(new Runnable() {
                     public void run() {
@@ -61,7 +61,7 @@ public class HtmlToPdf extends CordovaPlugin {
         }
     }
 
-    private String InputStreamToString(InputStream is) throws IOException {
+    private String inputStreamToString(InputStream is) throws IOException {
         ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
         int ch;
         while ((ch = is.read()) != -1) {
@@ -119,7 +119,7 @@ public class HtmlToPdf extends CordovaPlugin {
 
 final class InJavaScriptLocalObj {
 
-    private static final String fontPath = "/xyz/xyzmax/cordov/simsun.ttf";
+    private static final String fontPath = "/xyz/xyzmax/cordova/simsun.ttf";
     private String CssStyle;
 
     public InJavaScriptLocalObj(String css) {
