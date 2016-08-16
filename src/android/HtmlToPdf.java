@@ -39,13 +39,16 @@ public class HtmlToPdf extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         try {
             if (action.equals("create")) {
-                final String css = inputStreamToString(getClass().getResourceAsStream("/assets/www/css/pdf.css"));
 
+                String savePath = args.getString(1);
+                savePath = savePath.indexOf("file://") > -1 ? savePath.replace("file://", "") : savePath;
+                final String css = inputStreamToString(getClass().getResourceAsStream("/assets/www/css/pdf.css"));
                 final HtmlToPdf self = this;
                 final String content = args.optString(0, "<html></html>");
+                final String finalSavePath = savePath;
                 cordova.getActivity().runOnUiThread(new Runnable() {
                     public void run() {
-                        self.init(content, css);
+                        self.init(content, css, finalSavePath);
                     }
                 });
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -72,11 +75,11 @@ public class HtmlToPdf extends CordovaPlugin {
         return new String(imgdata);
     }
 
-    private void init(String content, String css) {
+    private void init(String content, String css, String savePath) {
         Activity ctx = cordova.getActivity();
         WebView mWebView = new WebView(ctx);
         mWebView.getSettings().setJavaScriptEnabled(true);
-        mWebView.addJavascriptInterface(new InJavaScriptLocalObj(css), "local_obj");
+        mWebView.addJavascriptInterface(new InJavaScriptLocalObj(css, cordova.getActivity().getCacheDir().toString(), savePath), "local_obj");
         mWebView.getSettings().setSupportZoom(true);
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.requestFocus();
@@ -121,9 +124,13 @@ final class InJavaScriptLocalObj {
 
     private static final String fontPath = "/xyz/xyzmax/cordova/simsun.ttf";
     private String CssStyle;
+    private String CacheFile;
+    private String SavePath;
 
-    public InJavaScriptLocalObj(String css) {
+    public InJavaScriptLocalObj(String css, String cacheDir, String savePath) {
         this.CssStyle = css;
+        this.CacheFile = cacheDir + "/index.html";
+        this.SavePath = savePath;
     }
 
 
@@ -131,15 +138,11 @@ final class InJavaScriptLocalObj {
     public void showSource(String html) throws FileNotFoundException {
         try {
 
-            System.out.print(html);
-
-            BaseFont bf = BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-            final Font font = new Font(bf, 13);
 
             StringBuilder sb = new StringBuilder(this.CssStyle);
             this.CssStyle = sb.insert(0, "</title><style>").append("</style></head>").toString();
 
-            OutputStream file = new FileOutputStream("/data/data/cn.gov.gdepb.ydzf/test.html");
+            OutputStream file = new FileOutputStream(this.CacheFile);
             String result = tidyHtml(html);
             String pattern = "<script(?:\\s+[^>]*)?>(.*?)<\\/script\\s*>";
             result = Pattern.compile(pattern).matcher(result).replaceAll("");
@@ -152,10 +155,10 @@ final class InJavaScriptLocalObj {
 
 
             Document document = new Document();
-            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream("/data/data/cn.gov.gdepb.ydzf/test.pdf"));
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(this.SavePath));
             document.open();
             XMLWorkerHelper.getInstance().parseXHtml(writer, document,
-                    new FileInputStream("/data/data/cn.gov.gdepb.ydzf/test.html"), null, new FontProvider() {
+                    new FileInputStream(this.CacheFile), null, new FontProvider() {
                         @Override
                         public boolean isRegistered(String s) {
                             return false;
@@ -163,7 +166,14 @@ final class InJavaScriptLocalObj {
 
                         @Override
                         public Font getFont(String s, String s1, boolean b, float v, int i, BaseColor baseColor) {
-                            return font;
+                            try {
+                                BaseFont bf = BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                                Font font = new Font(bf, 12);
+                                return font;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return null;
+                            }
                         }
                     });
             document.close();
