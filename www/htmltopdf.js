@@ -1,5 +1,5 @@
 var exec = require('cordova/exec');
 
-exports.coolMethod = function(arg0, success, error) {
-    exec(success, error, "cordova-plugin-htmltopdf", "coolMethod", [arg0]);
+exports.coolMethod = function (html, filePath, success, error) {
+    exec(success, error, "HtmlToPdf", "create", [html, filePath])
 };

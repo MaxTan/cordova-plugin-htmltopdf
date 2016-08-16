@@ -137,8 +137,7 @@ final class InJavaScriptLocalObj {
             final Font font = new Font(bf, 13);
 
             StringBuilder sb = new StringBuilder(this.CssStyle);
-            sb = sb.insert(0, "</title><style>");
-            this.CssStyle = sb.append("</style></head>").toString();
+            this.CssStyle = sb.insert(0, "</title><style>").append("</style></head>").toString();
 
             OutputStream file = new FileOutputStream("/data/data/cn.gov.gdepb.ydzf/test.html");
             String result = tidyHtml(html);
