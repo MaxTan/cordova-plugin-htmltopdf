@@ -48,7 +48,7 @@ public class HtmlToPdf extends CordovaPlugin {
                 final String finalSavePath = savePath;
                 cordova.getActivity().runOnUiThread(new Runnable() {
                     public void run() {
-                        self.init(content, css, finalSavePath);
+                        self.runWebView(content, css, finalSavePath);
                     }
                 });
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -75,7 +75,8 @@ public class HtmlToPdf extends CordovaPlugin {
         return new String(imgdata);
     }
 
-    private void init(String content, String css, String savePath) {
+
+    private void runWebView(String content, String css, String savePath) {
         Activity ctx = cordova.getActivity();
         WebView mWebView = new WebView(ctx);
         mWebView.getSettings().setJavaScriptEnabled(true);
@@ -137,28 +138,12 @@ final class InJavaScriptLocalObj {
     @JavascriptInterface
     public void showSource(String html) throws FileNotFoundException {
         try {
-
-
-            StringBuilder sb = new StringBuilder(this.CssStyle);
-            this.CssStyle = sb.insert(0, "</title><style>").append("</style></head>").toString();
-
-            OutputStream file = new FileOutputStream(this.CacheFile);
-            String result = tidyHtml(html);
-            String pattern = "<script(?:\\s+[^>]*)?>(.*?)<\\/script\\s*>";
-            result = Pattern.compile(pattern).matcher(result).replaceAll("");
-            pattern = "<link[^>]*.*/>";
-            result = Pattern.compile(pattern).matcher(result).replaceAll("");
-            pattern = "</title>\\s*</head> ";
-            result = Pattern.compile(pattern).matcher(result).replaceAll(this.CssStyle);
-            file.write(result.getBytes());
-            file.close();
-
-
+            String tmpPath = this.createTmpHtml(html,this.CacheFile);
             Document document = new Document();
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(this.SavePath));
             document.open();
             XMLWorkerHelper.getInstance().parseXHtml(writer, document,
-                    new FileInputStream(this.CacheFile), null, new FontProvider() {
+                    new FileInputStream(tmpPath), null, new FontProvider() {
                         @Override
                         public boolean isRegistered(String s) {
                             return false;
@@ -182,11 +167,33 @@ final class InJavaScriptLocalObj {
         }
     }
 
+
     private String tidyHtml(String html) {
         org.jsoup.nodes.Document doc = Jsoup.parse(html);
         doc.outputSettings().escapeMode(Entities.EscapeMode.xhtml);
         doc.outputSettings().prettyPrint(true);
         doc.outputSettings().syntax(org.jsoup.nodes.Document.OutputSettings.Syntax.xml);
         return doc.toString();
+    }
+
+    private String createTmpHtml(String html, String savePath) {
+        StringBuilder sb = new StringBuilder(this.CssStyle);
+        this.CssStyle = sb.insert(0, "</title><style>").append("</style></head>").toString();
+        try {
+            OutputStream file = new FileOutputStream(savePath);
+            String result = tidyHtml(html);
+            String pattern = "<script(?:\\s+[^>]*)?>(.*?)</script\\s*>";
+            result = Pattern.compile(pattern).matcher(result).replaceAll("");
+            pattern = "<link[^>]*.*/>";
+            result = Pattern.compile(pattern).matcher(result).replaceAll("");
+            pattern = "</title>\\s*</head> ";
+            result = Pattern.compile(pattern).matcher(result).replaceAll(this.CssStyle);
+            file.write(result.getBytes());
+            file.close();
+            return savePath;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

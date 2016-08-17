@@ -1,13 +1,22 @@
 
-### cordova-plugin-htmltopdf
+### Cordova插件 cordova-plugin-htmltopdf
 
 
+*优点：*
+* 可以把vue.js、angular.js这些模板类html生成pdf, 支持运行js
+* 支持中文，要自行添加字体文件，插件里面默认带一个宋体字体
+* 生成的pdf是矢量级，不是单纯的截图
 
+*缺点:*
+* 解析时不支持导入外部文件
+* 部分样式不支持 ([支持样式参考](http://demo.itextsupport.com/xmlworker/itextdoc/CSS-conformance-list.htm))
+* 换个html解析引擎可能说解决以上问题
+* 仅支持android
 
 
 ---
 
-### 使用方法:
+### 例子用法
 
 ```js
 
@@ -33,7 +42,7 @@
                     });
                 </script>
             </body>
-            </html>`
+            </html>`;
     cordova.plugins.htmltopdf.create(html, `${cordova.file.applicationStorageDirectory}test.pdf`, function () {
         console.log('success');
     }, console.error);
@@ -44,8 +53,9 @@
 
 
 >参考资料
-
-* [XmlWorker css支持表](http://demo.itextsupport.com/xmlworker/itextdoc/CSS-conformance-list.html)
-* [itext5文档](http://developers.itextpdf.com/examples/xml-worker-itext5) 
-* [itext github](https://github.com/itext/itextpdf) 
-* [jsoup github](https://github.com/jhy/jsoup/) 
+> * [itext](https://github.com/itext/itextpdf) 
+> * [jsoup](https://github.com/jhy/jsoup/)
+> * [XmlWorker css支持表](http://demo.itextsupport.com/xmlworker/itextdoc/CSS-conformance-list.htm)
+> * [itext5文档](http://developers.itextpdf.com/examples/xml-worker-itext5)  
+> * [itext生成中文解决方案](http://my.oschina.net/mobinchao/blog/524112)
+> * [获取网页数据](http://my.oschina.net/yuanxulong/blog/511039)
